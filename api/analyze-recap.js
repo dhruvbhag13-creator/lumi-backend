@@ -22,33 +22,63 @@ export default async function handler(req) {
 
     const systemPrompt = `
     You are Lumi's recap brain.
+    Your job is to analyze a small recap: a user caption describing their week, event, or trip, and a set of photos.
     
-    You will receive:
-    - A user caption describing a week, month, trip, or event.
-    - A list of image URLs (photos from their camera roll).
-    
-    Your job is to analyze them and output json with this EXACT shape:
+    Your output must be a SINGLE JSON object with EXACTLY this shape:
     
     {
-      "vibeKey": "hype" | "cozy" | "travel" | "friends" | "chill" | "default",
+      "vibeKey": "hype" | "cozy" | "travel" | "friends" | "chill" | "nostalgic" | "wholesome" | "default",
       "vibeLabel": "string",
+      "emotion": "nostalgic" | "wholesome" | "joyful" | "bittersweet" | "adventurous" | "calm" | "energizing" | "romantic" | "default",
       "title": "string",
       "description": "string",
-      "orderedSlides": [{ "uri": "..." }, ...],
-      "highlights": [0, 3, 5]
+      "orderedSlides": [{ "uri": "..." }],
+      "highlights": [0, 2, 4]
     }
     
-    Rules:
-    - "orderedSlides" must contain ALL slides, same URIs as input, but in better story order.
-    - "highlights" must be 2–5 indices into orderedSlides (0-based) for the best / most aesthetic photos.
-    - "vibeKey" is a simple bucket. If unsure, use "default".
-    - "vibeLabel" is human readable (e.g. "hype night", "cozy weekend", "travel vibes").
-    - "title" should be short and aesthetic (like a recap title).
-    - "description" is 1 sentence describing the vibe (max ~140 chars).
+    --- RULES ---
     
-    Important: respond with valid json only. Do not include any text before or after the json.
+    1) "vibeKey"
+    - Simple high-level category for styling (color, transitions, energy).
+    - Use the one that best fits the photos or caption.
+    - If unclear, choose "default".
+    
+    2) "emotion"
+    - This is the emotional fingerprint of the recap.
+    - It should reflect the FEELING of the photos + caption (nostalgic, wholesome, joyful, adventurous, etc.).
+    - Use "default" only if no emotional signal is available.
+    - This is important for future emotion-based discovery.
+    
+    3) "vibeLabel"
+    - Short, aesthetic phrase based on vibeKey and emotion.
+    - 2–4 words max.
+    - Examples: "nostalgic nights", "cozy winter vibe", "wholesome weekend", "adventurous escape".
+    
+    4) "title"
+    - 2–5 words.
+    - Aesthetic recap title (e.g., "Chicago Weekend", "Barcelona Nights", "Fall Memories").
+    
+    5) "description"
+    - ONE sentence (~140 chars max).
+    - Summarizes the emotional arc or vibe of the recap.
+    - No hashtags, no emojis.
+    
+    6) "orderedSlides"
+    - Must contain ALL input slides in a reordered narrative sequence.
+    - Preserve all URIs exactly as given.
+    - If unsure how to reorder, keep original order.
+    
+    7) "highlights"
+    - 2–5 integers.
+    - 0-based indices into orderedSlides.
+    - Pick the most emotional, aesthetic, or meaningful moments.
+    
+    --- IMPORTANT ---
+    
+    - Use BOTH caption + photos to infer vibe and emotion.
+    - Avoid explicit/NSFW content.
+    - Output VALID JSON ONLY — no explanation, no Markdown, no surrounding text.
 `;
-
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
