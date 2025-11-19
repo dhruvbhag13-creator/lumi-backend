@@ -51,14 +51,12 @@ If the caption is specific ("girls trip in Miami"), use that in the title/descri
 Return ONLY the JSON object, no explanation.
 `;
 
-    const response = await client.responses.create({
+    // ✅ Use chat.completions with JSON output
+    const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      text: { format: "json" },
-      input: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: systemPrompt },
         {
           role: "user",
           content: [
@@ -67,15 +65,16 @@ Return ONLY the JSON object, no explanation.
               text: `Caption: ${caption || ""}`,
             },
             ...slides.map((s) => ({
-              type: "input_image",
-              image_url: s.uri,
+              type: "image_url",
+              image_url: { url: s.uri },
             })),
           ],
         },
       ],
     });
 
-    const jsonText = response.output[0].content[0].text;
+    // The content is a JSON string
+    const jsonText = completion.choices[0].message.content;
 
     return new Response(jsonText, {
       status: 200,
