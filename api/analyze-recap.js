@@ -1,4 +1,3 @@
-// api/analyze-recap.ts (or src/app/api/analyze-recap/route.ts if using app router)
 import OpenAI from "openai";
 
 export const config = {
@@ -9,7 +8,7 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export default async function handler(req: Request) {
+export default async function handler(req) {
   try {
     const body = await req.json();
     const { slides, caption } = body || {};
@@ -97,7 +96,7 @@ You must respond with a SINGLE json object with EXACTLY this shape:
               type: "text",
               text: `Caption: ${caption || ""}`,
             },
-            ...slides.map((s: { dataUrl: string }) => ({
+            ...slides.map((s) => ({
               type: "image_url",
               image_url: { url: s.dataUrl },
             })),
@@ -112,7 +111,7 @@ You must respond with a SINGLE json object with EXACTLY this shape:
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e) {
     console.error("analyze-recap error:", e);
     return new Response(
       JSON.stringify({ error: e?.message || "Unknown error" }),
