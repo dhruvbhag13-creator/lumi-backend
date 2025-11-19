@@ -53,7 +53,7 @@ Return ONLY the JSON object, no explanation.
 
     const response = await client.responses.create({
       model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
+      text: { format: "json" },
       input: [
         {
           role: "system",
